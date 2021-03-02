@@ -1,1 +1,1 @@
-# SQL-ZOO
+# SQL-ZOO https://sqlzoo.net/wiki/SELECT_basics
