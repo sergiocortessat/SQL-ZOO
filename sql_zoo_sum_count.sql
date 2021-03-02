@@ -1,99 +1,39 @@
---List each country name where the population is larger than that of 'Russia'.
-SELECT name FROM world
-  WHERE population >
-     (SELECT population FROM world
-      WHERE name='Russia')
-
--- Show the countries in Europe with a per capita GDP greater than 'United Kingdom'.
-
-SELECT name
+--world(name, continent, area, population, gdp)
+SELECT SUM(population)
 FROM world
-WHERE continent = 'Europe' AND
-      gdp / population > (
-        SELECT gdp / population
-        FROM world
-        WHERE name = 'United Kingdom'
-      );
 
---List the name and continent of countries in the continents containing either Argentina or Australia. Order by name of the country.
+-- List all the continents - just once each.
 
-SELECT name, continent
+SELECT distinct continent
 FROM world
-WHERE continent IN (
-        SELECT continent
-        FROM world
-        WHERE name IN ('Argentina', 'Australia')
-      )
-ORDER BY name;
 
--- Which country has a population that is more than Canada but less than Poland? Show the name and the population.
+--Give the total GDP of Africa
 
-SELECT name, population
-FROM world
-WHERE population > (
-        SELECT population
-        FROM world
-        WHERE name = 'Canada') and
-      population < (
-        SELECT population
-        FROM world
-        WHERE name = 'Poland')  
-ORDER BY name;
+SELECT sum(gdp)
+FROM world where continent = 'Africa'
 
--- Show the name and the population of each country in Europe. Show the population as a percentage of the population of Germany.
+-- How many countries have an area of at least 1000000
 
-SELECT name, CONCAT(
-  ROUND(population / (
-      SELECT population
-      FROM world
-      WHERE name = 'Germany'
-  ) * 100 , 0), '%') AS percentage
-FROM world
-WHERE continent = 'Europe';
+SELECT count(name)
+FROM world where area >= 1000000
 
--- Which countries have a GDP greater than every country in Europe? [Give the name only.] (Some countries may have NULL gdp values)
+-- What is the total population of ('Estonia', 'Latvia', 'Lithuania')
 
-SELECT name
-  FROM world
- WHERE gdp > ALL(SELECT gdp
-                           FROM world
-                          WHERE gdp>0 and continent = 'Europe')
 
--- Find the largest country (by area) in each continent, show the continent, the name and the area:
+SELECT sum(population)
+FROM world where name in ('Estonia', 'Latvia', 'Lithuania')
 
-SELECT continent, name, area
-FROM world original
-WHERE area > ALL (SELECT area
-                  FROM world copy
-                  WHERE original.continent = copy.continent AND
-                        area > 0 AND
-                        original.name <> copy.name);
+-- For each continent show the continent and number of countries.
 
--- List each continent and the name of the country that comes first alphabetically.
+SELECT continent, count(name)
+FROM world group by continent
 
-SELECT continent, name
-FROM world original
-WHERE name = (SELECT name
-              FROM world copy
-              WHERE original.continent = copy.continent
-              ORDER BY name
-              LIMIT 1);
+-- For each continent show the continent and number of countries with populations of at least 10 million.
 
--- Find the continents where all countries have a population <= 25000000. Then find the names
--- of the countries associated with these continents. Show name, continent and population.
+SELECT continent, count(name)
+FROM world where population >= 10000000 group by continent
 
-SELECT name, continent, population
-FROM world original
-WHERE 25000000 > ALL(SELECT population
-          FROM world copy
-          WHERE original.continent = copy.continent);
+-- List the continents that have a total population of at least 100 million.
 
--- Some countries have population more than three times that of any of their
--- neighbours (in the same continent). Give the countries and continents.
-
-SELECT name, continent
-FROM world original
-WHERE population > ALL (SELECT population * 3
-                    FROM world copy
-                    WHERE original.continent = copy.continent
-                    AND original.name <> copy.name);
+SELECT continent
+FROM world group by continent having sum(population) >= 100000000
